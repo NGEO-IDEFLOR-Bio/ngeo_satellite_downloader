@@ -1,13 +1,13 @@
 # NGEO Satellite Downloader
 
 <p align="center">
-  <a href="https://colab.research.google.com/github/NGEO-IDEFLOR-Bio/ngeo_satellite_downloader/blob/main/ngeo_satellite_downloader.ipynb" target="_blank">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Abrir notebook no Google Colab" width="150">
+  <a href="ngeo_satellite_downloader.ipynb">
+    <img src="https://jupyter.org/assets/homepage/main-logo.svg" alt="Abrir o notebook Jupyter" width="150">
   </a>
 </p>
 
 <p align="center">
-  <a href="ngeo_satellite_downloader.ipynb">Abrir o notebook no repositório</a>
+  <strong><a href="ngeo_satellite_downloader.ipynb">Abrir o notebook principal</a></strong>
 </p>
 
 **Descrição curta do repositório:** notebook para o Google Colab que automatiza a aquisição de imagens Sentinel-2, Landsat, CBERS-4A e SPOT 2008 sobre áreas definidas por shapefile, com composição, máscara de nuvens, divisão automática em tiles e exportação em GeoTIFF para o Google Drive.
@@ -22,13 +22,13 @@ A ferramenta foi organizada no contexto do **Núcleo de Geotecnologias (NGEO) do
 
 O repositório é intencionalmente mínimo:
 
-- `ngeo_satellite_downloader_colab.ipynb`: notebook documentado para execução no Google Colab.
+- `ngeo_satellite_downloader.ipynb`: notebook principal para execução no Google Colab.
 - `LICENSE`: licença MIT.
 - `README.md`: documentação e créditos.
 
 ## Execução
 
-Abra o notebook no Google Colab, execute as células na ordem e autorize o Google Earth Engine e o Google Drive quando solicitado. Depois, envie um arquivo ZIP contendo o shapefile da área de interesse. O pacote vetorial deve incluir, no mínimo, os arquivos `.shp`, `.shx` e `.dbf`; a inclusão do `.prj` é recomendada.
+Abra o [notebook principal](ngeo_satellite_downloader.ipynb), execute as células na ordem e autorize o Google Earth Engine e o Google Drive quando solicitado. Depois, envie um arquivo ZIP contendo o shapefile da área de interesse. O pacote vetorial deve incluir, no mínimo, os arquivos `.shp`, `.shx` e `.dbf`; a inclusão do `.prj` é recomendada.
 
 Na interface, selecione o sensor, informe um ano, uma faixa de anos ou uma lista de anos, escolha o período e o método de composição quando disponíveis e defina a pasta de saída. O botão **INICIAR DOWNLOAD** cria as tarefas de exportação. Os resultados são gravados como GeoTIFF no Google Drive.
 
