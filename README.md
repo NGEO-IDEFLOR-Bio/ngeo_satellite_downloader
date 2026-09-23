@@ -1,13 +1,13 @@
 # NGEO Satellite Downloader
 
 <p align="center">
-  <a href="https://colab.research.google.com/drive/1bJ5rkJGJUpKTQBdLvOgjIpcH4pen94h0" target="_blank">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Abrir no Google Colab" width="220">
+  <a href="https://colab.research.google.com/github/NGEO-IDEFLOR-Bio/ngeo_satellite_downloader/blob/main/ngeo_satellite_downloader.ipynb" target="_blank">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Abrir notebook no Google Colab" width="150">
   </a>
 </p>
 
 <p align="center">
-  <strong>Abra o notebook diretamente no Google Colab clicando na miniatura acima.</strong>
+  <a href="ngeo_satellite_downloader.ipynb">Abrir o notebook no repositório</a>
 </p>
 
 **Descrição curta do repositório:** notebook para o Google Colab que automatiza a aquisição de imagens Sentinel-2, Landsat, CBERS-4A e SPOT 2008 sobre áreas definidas por shapefile, com composição, máscara de nuvens, divisão automática em tiles e exportação em GeoTIFF para o Google Drive.
