@@ -1,14 +1,6 @@
 # NGEO Satellite Downloader
 
-<p align="center">
-  <a href="ngeo_satellite_downloader.ipynb">
-    <img src="https://jupyter.org/assets/homepage/main-logo.svg" alt="Abrir o notebook Jupyter" width="150">
-  </a>
-</p>
-
-<p align="center">
-  <strong><a href="ngeo_satellite_downloader.ipynb">Abrir o notebook principal</a></strong>
-</p>
+[<img src="https://jupyter.org/assets/homepage/main-logo.svg" alt="Jupyter" width="22" height="22"> Abrir `ngeo_satellite_downloader.ipynb`](ngeo_satellite_downloader.ipynb)
 
 **Descrição curta do repositório:** notebook para o Google Colab que automatiza a aquisição de imagens Sentinel-2, Landsat, CBERS-4A e SPOT 2008 sobre áreas definidas por shapefile, com composição, máscara de nuvens, divisão automática em tiles e exportação em GeoTIFF para o Google Drive.
 
