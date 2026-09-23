@@ -1,5 +1,15 @@
 # NGEO Satellite Downloader
 
+<p align="center">
+  <a href="https://colab.research.google.com/drive/1bJ5rkJGJUpKTQBdLvOgjIpcH4pen94h0" target="_blank">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Abrir no Google Colab" width="220">
+  </a>
+</p>
+
+<p align="center">
+  <strong>Abra o notebook diretamente no Google Colab clicando na miniatura acima.</strong>
+</p>
+
 **Descrição curta do repositório:** notebook para o Google Colab que automatiza a aquisição de imagens Sentinel-2, Landsat, CBERS-4A e SPOT 2008 sobre áreas definidas por shapefile, com composição, máscara de nuvens, divisão automática em tiles e exportação em GeoTIFF para o Google Drive.
 
 ## Finalidade
@@ -37,7 +47,7 @@ Para áreas grandes, o notebook calcula uma estimativa de pixels e divide a exte
 
 É necessário ter uma conta com acesso ao Google Colab, ao Google Earth Engine e ao Google Drive. O projeto Earth Engine configurado no notebook deve estar acessível à conta que fará a autenticação. O tempo de execução depende da extensão da área, da quantidade de anos e do número de tarefas.
 
-As credenciais do INPE, quando necessárias para CBERS-4A, devem ser digitadas apenas na interface do notebook. Não salve senhas no arquivo, não as registre em logs e não faça commit de credenciais. O notebook desta versão não mantém um e-mail pessoal pré-preenchido no widget.
+As credenciais do INPE, quando necessárias para CBERS-4A, devem ser digitadas apenas na interface do notebook. Não salve senhas no arquivo, não as registre em logs e não faça commit de credenciais.
 
 Os produtos gerados devem passar por controle de qualidade antes de uso analítico ou publicação. Verifique cobertura espacial, continuidade entre tiles, presença de nuvens e sombras, datas, bandas, resolução, sistema de referência, valores nodata e compatibilidade com o objetivo do estudo.
 
