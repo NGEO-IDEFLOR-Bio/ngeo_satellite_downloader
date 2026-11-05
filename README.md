@@ -1,63 +1,83 @@
-# NGEO Satellite Downloader
+# 🛰️ NGEO Satellite Downloader
 
 <p align="left">
   <a href="https://colab.research.google.com/github/NGEO-IDEFLOR-Bio/ngeo_satellite_downloader/blob/main/ngeo_satellite_downloader.ipynb" target="_blank" style="text-decoration: none;">
-    <img src="https://github.com/googlecolab.png" alt="Google Colab" width="28" align="absmiddle" style="border-radius: 50%;">
-    &nbsp;<b>Acessar notebook</b>
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" height="32">
   </a>
 </p>
 
-**Descrição curta do repositório:** notebook para o Google Colab que automatiza a aquisição de imagens Sentinel-2, Landsat, CBERS-4A e SPOT 2008 sobre áreas definidas por shapefile, com composição, máscara de nuvens, divisão automática em tiles e exportação em GeoTIFF para o Google Drive.
+Pipeline operacional automatizado para o **Google Colab** desenvolvido pelo **Núcleo de Geotecnologias (NGEO / IDEFLOR-Bio)** para download de imagens de satélite (**Sentinel-2**, **Landsat**, **CBERS-4A** e **SPOT 2008**) sobre áreas de interesse definidas por Shapefile, com aplicação automática de máscara de nuvens, composição por mediana inteligente, divisão em quadrículas (tiles) e exportação em GeoTIFF para o Google Drive.
 
-## Finalidade
+> 💡 **Interface Moderna e Amigável:** O notebook adota formulários nativos do Google Colab com **código 100% oculto por padrão** (`cellView: "form"`), permitindo que técnicos e analistas ambientais operem todo o fluxo apenas preenchendo os parâmetros visuais essenciais.
 
-Este repositório contém um notebook operacional para apoiar fluxos de geotecnologias aplicadas ao território. O notebook recebe uma área de interesse em shapefile, consulta coleções de imagens, seleciona períodos e métodos de composição, trata áreas extensas por meio de tiles e cria tarefas de exportação para o Google Drive.
+---
 
-A ferramenta foi organizada no contexto do **Núcleo de Geotecnologias (NGEO) do Instituto de Desenvolvimento Florestal e da Biodiversidade do Estado do Pará (IDEFLOR-Bio)**. A página institucional de contatos do IDEFLOR-Bio identifica o NGEO e registra Samuel da Costa dos Santos como seu coordenador [1].
+## 🏛️ Contexto e Finalidade
 
-## Conteúdo do repositório
+Desenvolvido para subsidiar rotinas periciais, relatórios técnicos, vistorias remotas e monitoramento territorial no âmbito do **Instituto de Desenvolvimento Florestal e da Biodiversidade do Estado do Pará (IDEFLOR-Bio)**, sob coordenação de **Samuel da Costa dos Santos** (NGEO/IDEFLOR-Bio) [1].
 
-O repositório é intencionalmente mínimo:
+---
 
-- `ngeo_satellite_downloader.ipynb`: notebook principal para execução no Google Colab.
-- `LICENSE`: licença MIT.
-- `README.md`: documentação e créditos.
+## 🛰️ Sensores Orbitais e Especificações
 
-## Execução
+| Sensor | Resolução Espacial | Coleção / Fonte | Características Principais |
+|---|---:|---|---|
+| **Sentinel-2 MSI** | 10 m | `COPERNICUS/S2_SR_HARMONIZED` | Composição semestral ou mensal; máscara de nuvens e cirrus via SCL. |
+| **Landsat 5 / 7 / 8 / 9** | 30 m | `LANDSAT/*/C02/T1_L2` | Séries históricas de reflectância de superfície com máscara QA_PIXEL. |
+| **CBERS-4A (WPM/MUX)** | 2 m | Catálogo INPE (API Cbers4a) | Alta resolução espacial nacional com composição RGBN e recorte exato. |
+| **SPOT 2008** | 5 m | `GOOGLE/BRAZIL_FOREST_2008/V1/VISUAL` | Mosaico histórico oficial do Código Florestal Brasileiro (MMA/SFB). |
 
-Abra o [notebook principal](ngeo_satellite_downloader.ipynb), execute as células na ordem e autorize o Google Earth Engine e o Google Drive quando solicitado. Depois, envie um arquivo ZIP contendo o shapefile da área de interesse. O pacote vetorial deve incluir, no mínimo, os arquivos `.shp`, `.shx` e `.dbf`; a inclusão do `.prj` é recomendada.
+---
 
-Na interface, selecione o sensor, informe um ano, uma faixa de anos ou uma lista de anos, escolha o período e o método de composição quando disponíveis e defina a pasta de saída. O botão **INICIAR DOWNLOAD** cria as tarefas de exportação. Os resultados são gravados como GeoTIFF no Google Drive.
+## 🚀 Passo a Passo de Execução
 
-Para áreas grandes, o notebook calcula uma estimativa de pixels e divide a extensão em tiles quando necessário. A área exportada também pode ser expandida pelo parâmetro **Buffer**. Esses mecanismos alteram o volume de dados; portanto, a escolha deve ser registrada junto com os produtos gerados.
+1. **Abra o notebook no Colab** clicando no botão [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NGEO-IDEFLOR-Bio/ngeo_satellite_downloader/blob/main/ngeo_satellite_downloader.ipynb).
+2. **Passo 1 (Setup):** Clique no botão Play para instalar as dependências e clonar os módulos essenciais do repositório.
+3. **Passo 2 (Autenticação):** Insira o ID do seu projeto Google Cloud habilitado no Earth Engine e autorize a montagem do Google Drive.
+4. **Passo 3 (Área de Estudo):** Envie um arquivo `.zip` contendo o Shapefile (`.shp`, `.shx`, `.dbf`, `.prj`). O sistema validará a extensão, calculará a área em hectares e apresentará um cartão com estimativa de pixels.
+5. **Passo 4 (Parâmetros):** Selecione o sensor, informe os anos desejados, defina o método de composição (mediana inteligente ou melhor cena) e o fator de buffer.
+6. **Passo 5 (Execução):** Clique em Play para iniciar o processamento integrado e acompanhar o envio das tarefas para o Earth Engine.
+7. **Passo 6 (Resultados):** Visualize o resumo das imagens exportadas com botão direto para acessar a pasta no Google Drive.
 
-## Sensores disponíveis
+---
 
-| Sensor | Resolução de exportação | Particularidade |
-|---|---:|---|
-| Sentinel-2 | 10 m | Composição por semestre ou análise anual por meses. |
-| Landsat 5/7/8/9 | 30 m | Seleção de primeiro semestre, segundo semestre ou ambos. |
-| CBERS-4A (MUX/WPM) | 2 m | Requer credenciais do portal do INPE durante a sessão. |
-| SPOT 2008 — Código Florestal | 5 m | Mosaico específico de 2008. |
+## 📂 Estrutura do Repositório
 
-## Requisitos e observações
+```text
+ngeo_satellite_downloader/
+├── src/                          # Motor modular do downloader
+│   ├── __init__.py               # Versão do pacote e exports principais
+│   ├── config.py                 # Constantes, coleções do GEE e resoluções
+│   ├── vector_ops.py             # Leitura de shapefiles, reprojeção e divisão em tiles
+│   ├── sensors.py                # Consultas GEE, máscaras de nuvens e mediana
+│   ├── cbers.py                  # Integração com o catálogo e API CBERS (INPE)
+│   ├── exporter.py               # Orquestrador do pipeline e tarefas para o Drive
+│   └── ui_helpers.py             # Cartões visuais HTML e relatórios
+├── ngeo_satellite_downloader.ipynb # Notebook com código oculto (Colab Forms)
+├── requirements.txt              # Dependências do ecossistema geoespacial
+├── LICENSE                       # Licença MIT
+└── README.md                     # Documentação oficial
+```
 
-É necessário ter uma conta com acesso ao Google Colab, ao Google Earth Engine e ao Google Drive. O projeto Earth Engine configurado no notebook deve estar acessível à conta que fará a autenticação. O tempo de execução depende da extensão da área, da quantidade de anos e do número de tarefas.
+---
 
-As credenciais do INPE, quando necessárias para CBERS-4A, devem ser digitadas apenas na interface do notebook. Não salve senhas no arquivo, não as registre em logs e não faça commit de credenciais.
+## 🛡️ Controle de Qualidade e Boas Práticas
 
-Os produtos gerados devem passar por controle de qualidade antes de uso analítico ou publicação. Verifique cobertura espacial, continuidade entre tiles, presença de nuvens e sombras, datas, bandas, resolução, sistema de referência, valores nodata e compatibilidade com o objetivo do estudo.
+- **Projeção e Datum:** Os produtos são gerados em conformidade com o sistema SIRGAS 2000 / WGS-84 (EPSG:4326).
+- **Cobertura de Nuvens:** Em regiões da Amazônia com alta nebulosidade (Janeiro a Maio), recomenda-se utilizar o modo **Análise Anual** restringindo a busca aos meses mais secos (Junho a Outubro).
+- **Grandes Áreas:** Se a área de interesse ultrapassar o limiar de 5 milhões de pixels, a rotina aplica automaticamente a divisão em tiles regulares, assegurando a resolução nativa sem perda de fidelidade espectral.
 
-## Créditos
+---
 
-Desenvolvimento e coordenação: **Samuel da Costa dos Santos** — [samuelsantos.site](https://samuelsantos.site/).
+## 👨‍💻 Créditos e Apoio Institucional
 
-Apoio institucional: **Núcleo de Geotecnologias (NGEO) do IDEFLOR-Bio**, unidade institucional identificada na página oficial de contatos do Instituto [1]. O IDEFLOR-Bio é o Instituto de Desenvolvimento Florestal e da Biodiversidade do Estado do Pará.
+- **Desenvolvimento e Coordenação:** [Samuel da Costa dos Santos](https://samuelsantos.site/)
+- **Instituição:** Núcleo de Geotecnologias (NGEO) — Instituto de Desenvolvimento Florestal e da Biodiversidade do Estado do Pará (IDEFLOR-Bio) [1].
 
-## Licença
+## 📜 Licença
 
-Este projeto é distribuído sob a [Licença MIT](LICENSE). A licença autoriza uso, cópia, modificação e distribuição, desde que o aviso de copyright e o texto da licença sejam preservados.
+Distribuído sob a [Licença MIT](LICENSE).
 
-## Referências
+---
 
 [1]: https://ideflorbio.pa.gov.br/telefones/ "Página oficial de contatos do IDEFLOR-Bio — identificação do Núcleo de Geotecnologias (NGEO)"
