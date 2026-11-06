@@ -134,7 +134,7 @@ def load_shapefile_geometry(shp_path: str) -> Tuple[ee.Geometry, gpd.GeoDataFram
     elif gdf.crs.to_string() != CRS_WGS84:
         gdf = gdf.to_crs(CRS_WGS84)
 
-    # Forcar geometrias estritamente bidimensionais para conformidade com a validacao do Earth Engine
+    # Sanitizacao para geometria estritamente bidimensional e valida
     gdf.geometry = shapely.force_2d(gdf.geometry)
     gdf.geometry = shapely.make_valid(gdf.geometry)
     gdf = gdf[~gdf.geometry.is_empty & gdf.geometry.notnull()].copy()
@@ -144,33 +144,32 @@ def load_shapefile_geometry(shp_path: str) -> Tuple[ee.Geometry, gpd.GeoDataFram
 
     geometry = None
 
-    # Tentativa 1: geemap.shp_to_ee quando disponivel
+    # Estrategia 1: uniao de geometrias bidimensionais via shapely mapping direto
     try:
-        import geemap
-        fc = geemap.shp_to_ee(shp_path)
-        if fc is not None:
-            geometry = fc.geometry()
+        if hasattr(gdf.geometry, 'union_all'):
+            geom_union = shapely.force_2d(shapely.make_valid(gdf.geometry.union_all()))
+        else:
+            geom_union = shapely.force_2d(shapely.make_valid(gdf.unary_union))
+        mapping_dict = shapely.geometry.mapping(geom_union)
+        geometry = ee.Geometry(mapping_dict)
     except Exception:
         geometry = None
 
-    # Tentativa 2: conversao via GeoJSON tratado em duas dimensoes
+    # Estrategia 2: conversao via geemap utilizando o GeoDataFrame sanitizado
     if geometry is None:
         try:
-            geojson_dict = json.loads(gdf.to_json())
-            fc = ee.FeatureCollection(geojson_dict)
+            import geemap
+            fc = geemap.gdf_to_ee(gdf[['geometry']])
             geometry = fc.geometry()
         except Exception:
             geometry = None
 
-    # Tentativa 3: uniao geometrica direta convertida via dicionario GeoJSON
+    # Estrategia 3: conversao via FeatureCollection com atributos minimos
     if geometry is None:
         try:
-            if hasattr(gdf.geometry, 'union_all'):
-                geom_union = shapely.force_2d(shapely.make_valid(gdf.geometry.union_all()))
-            else:
-                geom_union = shapely.force_2d(shapely.make_valid(gdf.unary_union))
-            mapping_dict = shapely.geometry.mapping(geom_union)
-            geometry = ee.Geometry(mapping_dict)
+            geojson_dict = json.loads(gdf[['geometry']].to_json())
+            fc = ee.FeatureCollection(geojson_dict)
+            geometry = fc.geometry()
         except Exception as e:
             raise ValueError(f"Falha na conversao da geometria para o Earth Engine: {e}")
 
