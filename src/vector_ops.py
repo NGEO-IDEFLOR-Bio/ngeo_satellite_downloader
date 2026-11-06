@@ -1,9 +1,8 @@
 """
-Módulo de Operações Vetoriais e Processamento Espacial
-=====================================================
-Núcleo de Geotecnologias (NGEO / IDEFLOR-Bio)
-Responsável por descompactar shapefiles, validar geometrias,
-reprojetar para EPSG:4326, calcular estatísticas e dividir grandes áreas em tiles.
+Modulo de operacoes vetoriais e processamento espacial.
+Nucleo de Geotecnologias (NGEO, IDEFLOR-Bio).
+Realiza a descompactacao de shapefiles, validacao topologica,
+reprojecao para EPSG:4326, conversao bidimensional e calculo de metricas de area.
 """
 
 import os
@@ -16,11 +15,12 @@ from typing import List, Tuple, Dict, Any, Optional, Union
 
 import ee
 import geopandas as gpd
+import shapely
 from src.config import CRS_WGS84, MAX_PIXELS_DIRECT, DEFAULT_BUFFER_FACTOR
 
 
 def parse_years(text: Union[str, int]) -> List[int]:
-    """Converte strings de anos (ex: '2024', '2020-2024', '2020, 2022, 2024') em lista de inteiros."""
+    """Converte expressao textual de anos em lista de numeros inteiros."""
     if isinstance(text, int):
         return [text]
     text = str(text).strip()
@@ -37,7 +37,7 @@ def parse_years(text: Union[str, int]) -> List[int]:
 
 
 def expand_region(region: ee.Geometry, scale_factor: float = DEFAULT_BUFFER_FACTOR) -> ee.Geometry:
-    """Expande a bounding box da geometria pelo fator de escala informado."""
+    """Aplica fator multiplicador sobre os limites retangulares da geometria."""
     bounds = region.bounds()
     coords = bounds.coordinates().get(0).getInfo()
     xs = [pt[0] for pt in coords]
@@ -55,7 +55,7 @@ def expand_region(region: ee.Geometry, scale_factor: float = DEFAULT_BUFFER_FACT
 
 
 def estimate_pixel_count(region: ee.Geometry, scale: float) -> int:
-    """Estima o número de pixels cobertos pela extensão da geometria na resolução informada."""
+    """Calcula a estimativa numerica de pixels na resolucao informada."""
     bounds = region.bounds().coordinates().get(0).getInfo()
     xs = [pt[0] for pt in bounds]
     ys = [pt[1] for pt in bounds]
@@ -72,7 +72,7 @@ def split_region_into_tiles(
     scale: float,
     max_pixels: int = MAX_PIXELS_DIRECT
 ) -> Tuple[List[ee.Geometry], int]:
-    """Divide uma região extensa em uma grade de tiles se exceder max_pixels."""
+    """Segmenta a area em grade regular caso a contagem de pixels exceda o limite operacional."""
     total_pixels = estimate_pixel_count(region, scale)
     if total_pixels <= max_pixels:
         return [region], total_pixels
@@ -99,7 +99,7 @@ def split_region_into_tiles(
 
 
 def extract_shapefile_from_zip(zip_source: Union[str, bytes], extract_dir: str = "shapefile") -> str:
-    """Extrai arquivo ZIP e localiza o primeiro arquivo .shp contido nele."""
+    """Extrai arquivo compactado em formato ZIP e localiza o arquivo com extensao .shp."""
     if os.path.exists(extract_dir):
         shutil.rmtree(extract_dir)
     os.makedirs(extract_dir, exist_ok=True)
@@ -114,50 +114,92 @@ def extract_shapefile_from_zip(zip_source: Union[str, bytes], extract_dir: str =
 
     shp_files = [f for f in os.listdir(extract_dir) if f.lower().endswith('.shp')]
     if not shp_files:
-        # Procurar em subdiretórios se houver pasta interna
         for root, _, files in os.walk(extract_dir):
             for file in files:
                 if file.lower().endswith('.shp'):
                     return os.path.join(root, file)
-        raise FileNotFoundError("Nenhum arquivo .shp foi encontrado dentro do arquivo ZIP fornecido.")
+        raise FileNotFoundError("Nenhum arquivo com extensao .shp foi localizado no arquivo ZIP.")
 
     return os.path.join(extract_dir, shp_files[0])
 
 
 def load_shapefile_geometry(shp_path: str) -> Tuple[ee.Geometry, gpd.GeoDataFrame]:
-    """Carrega shapefile via Geopandas, garante reprojeção para EPSG:4326 e converte para ee.Geometry."""
+    """
+    Carrega o shapefile, padroniza as coordenadas em 2D para WGS-84 (EPSG:4326)
+    e converte para objeto ee.Geometry compativel com a API do Earth Engine.
+    """
     gdf = gpd.read_file(shp_path)
     if gdf.crs is None:
         gdf = gdf.set_crs(CRS_WGS84)
     elif gdf.crs.to_string() != CRS_WGS84:
         gdf = gdf.to_crs(CRS_WGS84)
 
-    # Converter para ee.FeatureCollection / ee.Geometry
-    geojson_data = json.loads(gdf.to_json())
-    feature_collection = ee.FeatureCollection(geojson_data)
-    geometry = feature_collection.geometry()
+    # Forcar geometrias estritamente bidimensionais para conformidade com a validacao do Earth Engine
+    gdf.geometry = shapely.force_2d(gdf.geometry)
+    gdf.geometry = shapely.make_valid(gdf.geometry)
+    gdf = gdf[~gdf.geometry.is_empty & gdf.geometry.notnull()].copy()
+
+    if gdf.empty:
+        raise ValueError("O shapefile informado nao possui registros geometricos validos.")
+
+    geometry = None
+
+    # Tentativa 1: geemap.shp_to_ee quando disponivel
+    try:
+        import geemap
+        fc = geemap.shp_to_ee(shp_path)
+        if fc is not None:
+            geometry = fc.geometry()
+    except Exception:
+        geometry = None
+
+    # Tentativa 2: conversao via GeoJSON tratado em duas dimensoes
+    if geometry is None:
+        try:
+            geojson_dict = json.loads(gdf.to_json())
+            fc = ee.FeatureCollection(geojson_dict)
+            geometry = fc.geometry()
+        except Exception:
+            geometry = None
+
+    # Tentativa 3: uniao geometrica direta convertida via dicionario GeoJSON
+    if geometry is None:
+        try:
+            if hasattr(gdf.geometry, 'union_all'):
+                geom_union = shapely.force_2d(shapely.make_valid(gdf.geometry.union_all()))
+            else:
+                geom_union = shapely.force_2d(shapely.make_valid(gdf.unary_union))
+            mapping_dict = shapely.geometry.mapping(geom_union)
+            geometry = ee.Geometry(mapping_dict)
+        except Exception as e:
+            raise ValueError(f"Falha na conversao da geometria para o Earth Engine: {e}")
 
     return geometry, gdf
 
 
 def calculate_aoi_stats(region: ee.Geometry, gdf: Optional[gpd.GeoDataFrame] = None) -> Dict[str, Any]:
-    """Calcula estatísticas de extensão, bounding box e estimativa de pixels para os sensores."""
+    """Calcula estatisticas operacionais de extensao geografica e estimativa de amostragem."""
     bounds = region.bounds().coordinates().get(0).getInfo()
     xs = [pt[0] for pt in bounds]
     ys = [pt[1] for pt in bounds]
     xmin, xmax = min(xs), max(xs)
     ymin, ymax = min(ys), max(ys)
 
-    # Estimativa de área em km² e hectares usando projeção métrica
     area_ha = 0.0
     area_km2 = 0.0
     if gdf is not None and not gdf.empty:
-        gdf_metric = gdf.to_crs("EPSG:5880")  # SIRGAS 2000 / Brasil Policonica
-        area_m2 = gdf_metric.geometry.area.sum()
-        area_ha = area_m2 / 10000.0
-        area_km2 = area_m2 / 1000000.0
+        try:
+            gdf_metric = gdf.to_crs("EPSG:5880")
+            area_m2 = gdf_metric.geometry.area.sum()
+            area_ha = area_m2 / 10000.0
+            area_km2 = area_m2 / 1000000.0
+        except Exception:
+            lat_mid = (ymin + ymax) / 2
+            m_lon = 111320 * math.cos(math.radians(lat_mid)) * (xmax - xmin)
+            m_lat = 110540 * (ymax - ymin)
+            area_km2 = (m_lon * m_lat) / 1000000.0
+            area_ha = area_km2 * 100.0
     else:
-        # Cálculo aproximado por bounding box
         lat_mid = (ymin + ymax) / 2
         m_lon = 111320 * math.cos(math.radians(lat_mid)) * (xmax - xmin)
         m_lat = 110540 * (ymax - ymin)

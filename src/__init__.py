@@ -1,8 +1,7 @@
 """
-NGEO Satellite Downloader
-=========================
-Núcleo de Geotecnologias (NGEO / IDEFLOR-Bio)
-Automação de download de imagens Sentinel-2, Landsat, SPOT e CBERS-4A.
+Pacote ngeo_satellite_downloader.
+Nucleo de Geotecnologias (NGEO, IDEFLOR-Bio).
+Aquisicao automatizada de produtos orbitais Sentinel-2, Landsat, SPOT e CBERS-4A.
 """
 
 from src.config import SENSOR_CONFIGS, DEFAULT_GEE_PROJECT
@@ -25,4 +24,4 @@ from src.exporter import run_pipeline, export_to_drive, monitor_task
 from src.ui_helpers import render_aoi_card, render_results_cards
 
 __version__ = "2.0.0"
-__author__ = "Samuel da Costa dos Santos (NGEO / IDEFLOR-Bio)"
+__author__ = "Samuel da Costa dos Santos (NGEO, IDEFLOR-Bio)"

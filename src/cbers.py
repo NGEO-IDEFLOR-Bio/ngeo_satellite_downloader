@@ -1,9 +1,8 @@
 """
-Módulo de Integração com o Catálogo CBERS-4A (INPE)
-==================================================
-Núcleo de Geotecnologias (NGEO / IDEFLOR-Bio)
-Responsável por autenticação, consulta de cenas MUX/WPM na API do INPE,
-download das bandas multiespectrais, composição RGBN e recorte na ROI.
+Modulo de integracao com o catalogo de imagens CBERS-4A (INPE).
+Nucleo de Geotecnologias (NGEO, IDEFLOR-Bio).
+Realiza consultas na API Cbers4a, download de bandas espectrais,
+composicao RGBN e recorte espacial sobre a area de interesse.
 """
 
 import os
@@ -16,7 +15,7 @@ import ee
 
 
 def check_cbers_deps() -> Tuple[bool, str]:
-    """Verifica se as dependências do ecossistema CBERS estão instaladas."""
+    """Verifica se as dependencias do ecossistema CBERS estao instaladas."""
     try:
         import cbers4asat
         import rasterio
@@ -36,16 +35,16 @@ def get_cbers_image_inpe(
     inpe_email: Optional[str] = None
 ) -> Optional[str]:
     """
-    Busca, baixa e processa cena do CBERS-4A via API do INPE.
-    Gera composição RGBN e recorta na bounding box expandida da ROI.
+    Localiza, baixa e processa cenas CBERS-4A via catalogo do INPE.
+    Gera composicao multiespectral e recorta nos limites da area de interesse.
     """
     has_deps, err = check_cbers_deps()
     if not has_deps:
-        print(f"  [ERRO] Dependências CBERS ausentes: {err}")
+        print(f"  [ERRO] Dependencias CBERS ausentes: {err}")
         return None
 
     if not inpe_email:
-        print("  [ERRO] Email cadastrado no INPE não informado.")
+        print("  [ERRO] Endereco de e-mail cadastrado no INPE nao informado.")
         return None
 
     try:
@@ -72,7 +71,7 @@ def get_cbers_image_inpe(
         start_date = datetime.date(year, min(months), 1)
         _, last_day = calendar.monthrange(year, max(months))
         end_date = datetime.date(year, max(months), last_day)
-        print(f"  [CBERS] Buscando cenas CBERS-4A ({start_date} até {end_date})...")
+        print(f"  [INFO] Consulta ao catalogo CBERS-4A de {start_date} a {end_date}.")
 
         products = api.query(
             location=bbox,
@@ -84,7 +83,7 @@ def get_cbers_image_inpe(
         )
 
         if not products or not products.get('features'):
-            print("  [AVISO] Nenhuma cena CBERS-4A encontrada no período.")
+            print("  [AVISO] Nenhuma cena CBERS-4A encontrada para o intervalo.")
             return None
 
         features = products['features']
@@ -98,13 +97,13 @@ def get_cbers_image_inpe(
         scene_id = best['id']
         cloud_val = get_cloud(best)
         date_str = best['properties'].get('datetime', '').split('T')[0]
-        print(f"  [OK] Melhor cena CBERS: {scene_id} ({date_str}, {cloud_val}% nuvens)")
+        print(f"  [INFO] Cena selecionada: {scene_id} ({date_str}, {cloud_val}% de nuvens).")
 
         bands = ['red', 'green', 'blue', 'nir']
         temp_dir = os.path.join(output_dir, 'temp_cbers')
         os.makedirs(temp_dir, exist_ok=True)
 
-        print(f"  [DOWNLOAD] Baixando bandas multiespectrais...")
+        print("  [INFO] Efetuando download das bandas espectrais...")
         api.download(
             products={'type': 'FeatureCollection', 'features': [best]},
             bands=bands,
@@ -125,11 +124,11 @@ def get_cbers_image_inpe(
         b_nir = next((os.path.join(scene_subdir, f) for f in files_list if 'BAND4' in f or 'BAND8' in f), None)
 
         if not all([b_red, b_green, b_blue]):
-            print("  [ERRO] Não foi possível localizar todas as bandas RGB no pacote baixado.")
+            print("  [ERRO] Falha ao identificar as bandas espectrais necessarias.")
             return None
 
         composite_path = os.path.join(output_dir, f'CBERS_{scene_id}_STACK.tif')
-        print(f"  [PROCESSAMENTO] Criando composição RGBN...")
+        print("  [INFO] Gerando empilhamento de bandas RGBN...")
         rgbn_composite(
             red=b_red, green=b_green, blue=b_blue, nir=b_nir,
             filename=os.path.basename(composite_path), outdir=output_dir
@@ -137,7 +136,7 @@ def get_cbers_image_inpe(
 
         final_filename = f'CBERS_{year}_{scene_id[:10]}.tif'
         final_path = os.path.join(output_dir, final_filename)
-        print(f"  [RECORTE] Recortando na área de interesse...")
+        print("  [INFO] Aplicando mascara de recorte sobre a area de interesse...")
 
         try:
             with rio.open(composite_path) as src:
@@ -150,7 +149,7 @@ def get_cbers_image_inpe(
                 filename=final_filename, outdir=output_dir
             )
         except Exception as e:
-            print(f"  [AVISO] Erro no recorte projetado: {e}. Aplicando recorte fallback...")
+            print(f"  [AVISO] Recorte reprojetado falhou ({e}). Aplicando recorte geografico padrao...")
             raster_clip(
                 raster=composite_path, mask=poly_aoi,
                 filename=final_filename, outdir=output_dir
@@ -165,5 +164,5 @@ def get_cbers_image_inpe(
 
         return final_path
     except Exception as e:
-        print(f"  [ERRO] Falha no processamento CBERS: {e}")
+        print(f"  [ERRO] Falha durante a execucao do fluxo CBERS: {e}")
         return None
