@@ -21,7 +21,7 @@ from src.sensors import (
 )
 from src.cbers import get_cbers_image_inpe
 from src.exporter import run_pipeline, export_to_drive, monitor_task
-from src.ui_helpers import render_aoi_card, render_results_cards
+from src.ui_helpers import render_aoi_card, render_results_cards, create_download_panel
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "Samuel da Costa dos Santos (NGEO, IDEFLOR-Bio)"

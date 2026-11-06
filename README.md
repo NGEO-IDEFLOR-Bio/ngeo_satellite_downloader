@@ -8,7 +8,7 @@
 
 Ambiente operacional automatizado para o Google Colab desenvolvido pelo Nucleo de Geotecnologias (NGEO) do Instituto de Desenvolvimento Florestal e da Biodiversidade do Estado do Para (IDEFLOR-Bio). O sistema executa a aquisicao de imagens orbitais dos programas Sentinel-2, Landsat, CBERS-4A e SPOT 2008 sobre limites territoriais fornecidos em formato shapefile, aplicando mascaras de nuvens, composicao por mediana estatistica, particionamento em grade de tiles e exportacao em GeoTIFF para o Google Drive.
 
-A interface do notebook utiliza formularios nativos do Google Colab com codigo oculto por padrao, disponibilizando campos de selecao parametrica para operacao direta por tecnicos e analistas ambientais.
+A interface do notebook utiliza formularios nativos do Google Colab com codigo oculto por padrao e painel reativo condicional, disponibilizando campos de selecao parametrica fechada para operacao direta por tecnicos e analistas ambientais.
 
 ## Finalidade Institucional
 
@@ -26,12 +26,10 @@ A ferramenta atende as demandas de analise pericial, elaboracao de relatorios te
 ## Roteiro de Execucao
 
 1. Acesso ao notebook: abra o arquivo ngeo_satellite_downloader.ipynb no ambiente Google Colab por meio do link institucional.
-2. Etapa 1 (Instalacao): execute a celula de preparacao para instalacao silenciosa das bibliotecas geoespaciais e clonagem do nucleo de processamento.
+2. Etapa 1 (Instalacao): execute a celula de preparacao para instalacao silenciosa das bibliotecas geoespaciais e sincronizacao automatica do nucleo de processamento.
 3. Etapa 2 (Autenticacao): informe o identificador do projeto no Google Earth Engine e autorize a integracao com o Google Drive.
-4. Etapa 3 (Entrada vetorial): envie o arquivo ZIP contendo os componentes do shapefile (.shp, .shx, .dbf, .prj). O fluxo executa a reprojecao automatica para WGS-84 (EPSG:4326), a higienizacao de geometrias bidimensionais e o calculo de area.
-5. Etapa 4 (Parametrizacao): selecione o sensor orbital, informe os anos de interesse, defina a estrategia de composicao e o fator multiplicador de buffer.
-6. Etapa 5 (Processamento): dispare a rotina de amostragem espectral e acompanhe o encaminhamento das tarefas ao Earth Engine.
-7. Etapa 6 (Resultados): consulte o relatorio de exportacao e acesse a pasta de destino dos arquivos GeoTIFF no Google Drive.
+4. Etapa 3 (Entrada vetorial): envie o arquivo ZIP contendo os componentes do shapefile (.shp, .shx, .dbf, .prj). O fluxo executa a reprojecao automatica para WGS-84 (EPSG:4326), a higienizacao de geometrias bidimensionais e o calculo de metricas espaciais.
+5. Etapa 4 (Painel integrado): selecione o sensor orbital no painel reativo, ajuste os parametros condicionais de periodo e buffer, e clique no botao INICIAR DOWNLOAD integrado para iniciar o processamento e acompanhar a exportacao dos arquivos GeoTIFF.
 
 ## Estrutura do Repositorio
 
@@ -44,7 +42,7 @@ ngeo_satellite_downloader/
 │   ├── sensors.py                # Consultas ao Earth Engine e mascaras de nuvens
 │   ├── cbers.py                  # Integracao com a API e catalogo CBERS (INPE)
 │   ├── exporter.py               # Orquestrador de tarefas e gravacao no Drive
-│   └── ui_helpers.py             # Paines HTML e relatorios operacionais
+│   └── ui_helpers.py             # Painel reativo condicional e relatorios
 ├── ngeo_satellite_downloader.ipynb # Notebook com interface de formulario
 ├── requirements.txt              # Relacao de dependencias tecnicas
 ├── LICENSE                       # Termos da Licenca MIT
